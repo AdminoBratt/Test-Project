@@ -26,12 +26,12 @@ Feature: User Login
   Scenario: Successful login as Super Admin user
     Given I am on the application homepage
     When I click on the login button
-    And I enter "Lundstedtkevin@gmail.com" as email
-    And I enter "abc123" as password
+    And I enter "siggebratt1@gmail.com" as email
+    And I enter "02589" as password
     And I click the Login button
     Then I should be logged in successfully
     And I should see admin dashboard in the nav-bar
-    And I should see my name "KevinSuper" in the header
+    And I should see my name "Admino" in the header
 
   Scenario: Failed login with non-existent user
     Given I am on the application homepage
