@@ -1,0 +1,250 @@
+using Microsoft.Playwright;
+using TechTalk.SpecFlow;
+using Xunit;
+using N2NTest.Helper;
+
+namespace E2ETesting.Steps
+{
+    [Binding]
+    public class AdminUserManagementSteps
+    {
+        // SETUP:
+        private IPlaywright _playwright;
+        private IBrowser _browser;
+        private IBrowserContext _context;
+        private IPage _page;
+        private string _baseUrl = "http://localhost:3001";
+        private string _updatedName = "Updated Name";
+        
+        [BeforeScenario]
+        public async Task Setup()
+        {
+            _playwright = await Playwright.CreateAsync();
+            _browser = await _playwright.Chromium.LaunchAsync(new() { Headless = true, SlowMo = 0 });
+            _context = await _browser.NewContextAsync();
+            _page = await _context.NewPageAsync();
+        }
+
+        [AfterScenario]
+        public async Task TearDown()
+        {
+            await _context.CloseAsync();
+            await _browser.CloseAsync();
+            _playwright.Dispose();
+        }
+
+        // BACKGROUND STEPS:
+        [Given(@"I am logged in as an admin user")]
+        public async Task GivenIAmLoggedInAsAnAdminUser()
+        {
+            await _page.GotoAsync(_baseUrl);
+            await LogIn.LoginAsync(_page);
+            
+            // Wait for navigation to complete after login
+            await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        }
+
+        [Given(@"I am on the admin dashboard")]
+        public async Task GivenIAmOnTheAdminDashboard()
+        {
+            await _page.GotoAsync($"{_baseUrl}/admin/dashboard");
+            
+            // Wait for the page to load
+            await _page.WaitForSelectorAsync(".page-container");
+        }
+
+        // USER MANAGEMENT STEPS:
+        [When(@"I click on the ""Användare"" tab")]
+        public async Task WhenIClickOnTheUsersTab()
+        {
+            // Make sure we click the Users tab
+            await _page.ClickAsync("button.toggle-button:text('Användare')");
+            
+            // Wait for the user list to load
+            await _page.WaitForSelectorAsync(".data-table");
+        }
+
+        [When(@"I click the ""Redigera"" button for the first user")]
+        public async Task WhenIClickTheEditButtonForFirstUser()
+        {
+            // Find the first row and click the edit button
+            var rows = await _page.QuerySelectorAllAsync("tr");
+            if (rows.Count > 1) // Skip header row
+            {
+                var editButton = await rows[1].QuerySelectorAsync("button.edit-button");
+                await editButton.ClickAsync();
+            }
+            else
+            {
+                Assert.Fail("No user rows found in the table");
+            }
+        }
+
+        [When(@"I update the user's first name")]
+        public async Task WhenIUpdateTheUsersFirstName()
+        {
+            // Set up dialog handler for the first prompt (firstName)
+            _page.Dialog += (_, dialog) => {
+                if (dialog.Type == "prompt" && dialog.Message.Contains("förnamn")) {
+                    dialog.AcceptAsync(_updatedName);
+                }
+            };
+            
+            // Wait for the dialog to be handled
+            await _page.WaitForTimeoutAsync(500);
+        }
+
+        [When(@"I complete the user update")]
+        public async Task WhenICompleteTheUserUpdate()
+        {
+            // Handle the remaining prompts with empty values to keep defaults
+            int promptCount = 0;
+            
+            _page.Dialog += (_, dialog) => {
+                promptCount++;
+                
+                // We've already handled the first name prompt, now handle the rest
+                if (promptCount > 1 && dialog.Type == "prompt") {
+                    dialog.AcceptAsync("");
+                }
+                
+                // For the success alert that appears after update
+                if (dialog.Type == "alert") {
+                    dialog.AcceptAsync();
+                }
+            };
+            
+            // Wait for all prompts and the final alert to be handled
+            await _page.WaitForTimeoutAsync(2000);
+            
+            // Refresh the list to ensure we're seeing updated data
+            await _page.ClickAsync("button.refresh-button");
+            
+            // Wait for the data to reload
+            await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await _page.WaitForSelectorAsync(".data-table", new() { State = WaitForSelectorState.Visible });
+            
+            // Verify the update
+            var rows = await _page.QuerySelectorAllAsync("tr");
+            if (rows.Count > 1)
+            {
+                var cells = await rows[1].QuerySelectorAllAsync("td");
+                var firstNameText = await cells[0].TextContentAsync();
+                Assert.Equal(_updatedName, firstNameText);
+            }
+            else
+            {
+                Assert.Fail("No user rows found after update");
+            }
+        }
+
+        [When(@"I delete the first user")]
+        public async Task WhenIDeleteTheFirstUser()
+        {
+            // Find the first row
+            var rows = await _page.QuerySelectorAllAsync("tr");
+            if (rows.Count > 1) // Skip header row
+            {
+                // Set up handler for the confirmation dialog before clicking delete
+                _page.Dialog += (_, dialog) => {
+                    if (dialog.Type == "confirm" && dialog.Message.Contains("säker")) {
+                        dialog.AcceptAsync();
+                    }
+                    
+                    // For the success alert that appears after deletion
+                    if (dialog.Type == "alert") {
+                        dialog.AcceptAsync();
+                    }
+                };
+                
+                // Store the email of the user we're about to delete for verification
+                var cells = await rows[1].QuerySelectorAllAsync("td");
+                var userEmail = await cells[1].TextContentAsync(); // Assuming email is in the second column
+                
+                // Click the delete button in that row
+                var deleteButton = await rows[1].QuerySelectorAsync("button.delete-button");
+                await deleteButton.ClickAsync();
+                
+                // Wait for the deletion process to complete
+                await _page.WaitForTimeoutAsync(1000);
+                
+                // Refresh the list to ensure we're seeing updated data
+                await _page.ClickAsync("button.refresh-button");
+                
+                // Wait for the data to reload
+                await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+                await _page.WaitForSelectorAsync(".data-table", new() { State = WaitForSelectorState.Visible });
+                
+                // Verify the user is gone
+                await _page.WaitForTimeoutAsync(1000);
+                var deletedUserRow = await _page.QuerySelectorAsync($"tr:has(td:text('{userEmail}'))");
+                Assert.Null(deletedUserRow);
+            }
+            else
+            {
+                Assert.Fail("No user rows found to delete");
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+using Microsoft.Playwright;
+
+namespace N2NTest.Helper;
+
+public class LogIn
+{
+    public static async Task LoginAsync(IPage page)
+    {
+        // Navigate to the staff login page
+        await page.GotoAsync("http://localhost:3001/staff/login");
+        
+        // Fill in the username field
+        await page.FillAsync(".staff-field-input[type='text']", "siggebratt1@gmail.com");
+        
+        // Fill in the password field
+        await page.FillAsync(".staff-field-input[type='password']", "02589");
+        
+        // Click the login button
+        await page.ClickAsync(".staff-login-button");
+        
+        // Wait for navigation to complete after successful login
+        await page.WaitForURLAsync("localhost:3001/admin/dashboard");
+        
+        // Wait for the dashboard to load
+        await page.WaitForSelectorAsync(".page-container", new() { Timeout = 10000 });
+    }
+}
+
+
+Feature: Admin User Management
+As an admin user
+I want to manage user accounts
+So that I can maintain the system's user base
+
+
+    Scenario: Update a user's information
+        Given I am logged in as an admin user
+        And I am on the admin dashboard
+        When I click on the "Användare" tab
+        And I click the "Redigera" button for the first user
+        And I update the user's first name
+        And I complete the user update
+        Then the user's information should be updated successfully
+
+    Scenario: Delete a user from the system
+        Given I am logged in as an admin user
+        And I am on the admin dashboard
+        When I click on the "Användare" tab
+        And I delete the first user
+        Then the user should be removed from the system
+
+
+
