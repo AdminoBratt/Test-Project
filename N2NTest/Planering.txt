@@ -245,6 +245,390 @@ So that I can maintain the system's user base
         When I click on the "Användare" tab
         And I delete the first user
         Then the user should be removed from the system
+        
+        
+        
+        Feature: Contact Customer Service Form
+        As a customer
+        I want to fill out the appropriate contact form
+        So that I can get help with my specific issue
+        
+            Scenario: Submit Telecom service request
+                Given I am on the customer service contact form page
+                When I select "Tele/Bredband" as the company type
+                And I fill in my personal information
+                And I select "Bredband" as the service type
+                And I select "Tekniskt problem" as the issue type
+                And I enter a detailed message
+                And I submit the form
+                Then I should see a success message
+        
+            Scenario: Submit Car repair service request
+                Given I am on the customer service contact form page
+                When I select "Fordonsservice" as the company type
+                And I fill in my personal information
+                And I enter "ABC123" as the registration number
+                And I select "Garantiärende" as the issue type
+                And I enter a detailed message
+                And I submit the form
+                Then I should see a success message
+        
+            Scenario: Submit Insurance request
+                Given I am on the customer service contact form page
+                When I select "Försäkringsärenden" as the company type
+                And I fill in my personal information
+                And I select "Hemförsäkring" as the insurance type
+                And I select "Fakturafrågor" as the issue type
+                And I enter a detailed message
+                And I submit the form
+                Then I should see a success message
+        
+            Scenario: Verify form validation
+                Given I am on the customer service contact form page
+                When I select "Tele/Bredband" as the company type
+                And I submit the form without filling required fields
+                Then I should see validation errors
+                
+                
+                
+                
+                
+                
+                using Microsoft.Playwright;
+                using TechTalk.SpecFlow;
+                using Xunit;
+                
+                namespace E2ETesting.Steps;
+                
+                [Binding]
+                public class ContactFormSteps
+                {
+                    // SETUP:
+                    private IPlaywright _playwright;
+                    private IBrowser _browser;
+                    private IBrowserContext _context;
+                    private IPage _page;
+                    private string _baseUrl = "http://localhost:3001";
+                
+                    [BeforeScenario]
+                    public async Task Setup()
+                    {
+                        _playwright = await Playwright.CreateAsync();
+                        _browser = await _playwright.Chromium.LaunchAsync(new() { Headless = true, SlowMo = 0 });
+                        _context = await _browser.NewContextAsync();
+                        _page = await _context.NewPageAsync();
+                    }
+                
+                    [AfterScenario]
+                    public async Task TearDown()
+                    {
+                        await _context.CloseAsync();
+                        await _browser.CloseAsync();
+                        _playwright.Dispose();
+                    }
+                
+                    // STEPS:
+                    [Given(@"I am on the customer service contact form page")]
+                    public async Task GivenIAmOnTheCustomerServiceContactFormPage()
+                    {
+                        await _page.GotoAsync($"{_baseUrl}");
+                        await _page.WaitForSelectorAsync(".dynamisk-form-container");
+                    }
+                
+                    [When(@"I select ""(.*)"" as the company type")]
+                    public async Task WhenISelectAsTheCompanyType(string companyType)
+                    {
+                        await _page.SelectOptionAsync("select[name='companyType']", companyType);
+                        // Allow time for dynamic fields to load
+                        await _page.WaitForTimeoutAsync(200);
+                    }
+                
+                    [When(@"I fill in my personal information")]
+                    public async Task WhenIFillInMyPersonalInformation()
+                    {
+                        await _page.FillAsync("input[name='firstName']", "Test Person");
+                        await _page.FillAsync("input[name='email']", "test@example.com");
+                    }
+                
+                    [When(@"I select ""(.*)"" as the service type")]
+                    public async Task WhenISelectAsTheServiceType(string serviceType)
+                    {
+                        await _page.SelectOptionAsync("select[name='serviceType']", serviceType);
+                    }
+                
+                    [When(@"I select ""(.*)"" as the issue type")]
+                    public async Task WhenISelectAsTheIssueType(string issueType)
+                    {
+                        await _page.SelectOptionAsync("select[name='issueType']", issueType);
+                    }
+                
+                    [When(@"I enter ""(.*)"" as the registration number")]
+                    public async Task WhenIEnterAsTheRegistrationNumber(string regNumber)
+                    {
+                        await _page.FillAsync("input[name='registrationNumber']", regNumber);
+                    }
+                
+                    [When(@"I select ""(.*)"" as the insurance type")]
+                    public async Task WhenISelectAsTheInsuranceType(string insuranceType)
+                    {
+                        await _page.SelectOptionAsync("select[name='insuranceType']", insuranceType);
+                    }
+                
+                    [When(@"I enter a detailed message")]
+                    public async Task WhenIEnterADetailedMessage()
+                    {
+                        await _page.FillAsync("textarea[name='message']", "This is a test message describing my issue in detail. Please contact me as soon as possible.");
+                    }
+                
+                    [When(@"I submit the form")]
+                    public async Task WhenISubmitTheForm()
+                    {
+                        await _page.ClickAsync("button.dynamisk-form-button");
+                        
+                        // Wait for form submission to complete
+                        await _page.WaitForSelectorAsync(".dynamisk-message", new() { State = WaitForSelectorState.Visible });
+                    }
+                
+                    [When(@"I submit the form without filling required fields")]
+                    public async Task WhenISubmitTheFormWithoutFillingRequiredFields()
+                    {
+                        // Clear any filled fields first
+                        await _page.EvaluateAsync("document.querySelector('input[name=\"firstName\"]').value = ''");
+                        await _page.EvaluateAsync("document.querySelector('input[name=\"email\"]').value = ''");
+                        
+                        await _page.ClickAsync("button.dynamisk-form-button");
+                    }
+                
+                    [Then(@"I should see a success message")]
+                    public async Task ThenIShouldSeeASuccessMessage()
+                    {
+                        var messageElement = await _page.WaitForSelectorAsync(".dynamisk-message:not(.error)");
+                        Assert.NotNull(messageElement);
+                        
+                        // Verify the message is not an error
+                        var classAttribute = await messageElement.GetAttributeAsync("class");
+                        Assert.DoesNotContain("error", classAttribute);
+                        
+                        // Optional: Verify specific success message text
+                        var messageText = await messageElement.TextContentAsync();
+                        Assert.NotEmpty(messageText);
+                    }
+                
+                    [Then(@"I should see validation errors")]
+                    public async Task ThenIShouldSeeValidationErrors()
+                    {
+                        // Check for HTML5 validation errors
+                        var isValid = await _page.EvaluateAsync<bool>("() => document.querySelector('form').checkValidity()");
+                        Assert.False(isValid);
+                        
+                        // Alternative: Check for visible error message if your form shows custom errors
+                        var errorElement = await _page.QuerySelectorAsync(".dynamisk-message.error");
+                        if (errorElement != null)
+                        {
+                            var errorText = await errorElement.TextContentAsync();
+                            Assert.NotEmpty(errorText);
+                        }
+                    }
+                
+                    // Helper method to wait for element to disappear (replaces wait timeout)
+                    private async Task WaitForElementToDisappear(string selector, int timeoutMs = 5000)
+                    {
+                        var startTime = DateTime.Now;
+                        while ((DateTime.Now - startTime).TotalMilliseconds < timeoutMs)
+                        {
+                            var element = await _page.QuerySelectorAsync(selector);
+                            if (element == null)
+                                return;
+                            
+                            await _page.WaitForTimeoutAsync(100);
+                        }
+                        
+                        Assert.Fail($"Element {selector} did not disappear within {timeoutMs}ms");
+                    }
+                }
+                    
+                    
+                    
+                    
+                    
+                    
+                    Feature: User Login
+                      As a user of the system
+                      I want to be able to log in with my credentials
+                      So that I can access features based on my role
+                    
+                      Scenario: Successful login as Staff user
+                        Given I am on the application homepage
+                        When I click on the login button
+                        And I enter "staff@mail.com" as email
+                        And I enter "staff" as password
+                        And I click the Login button
+                        Then I should be logged in successfully
+                        And I should see staff features for "forsakring" department
+                        And I should see my name "Staff" in the header
+                    
+                      Scenario: Successful login as Admin user
+                        Given I am on the application homepage
+                        When I click on the login button
+                        And I enter "maadridista@gmail.com" as email
+                        And I enter "abc123" as password
+                        And I click the Login button
+                        Then I should be logged in successfully
+                        And I should see admin dashboard in the nav-bar
+                        And I should see my name "KevinAdmin" in the header
+                    
+                      Scenario: Successful login as Super Admin user
+                        Given I am on the application homepage
+                        When I click on the login button
+                        And I enter "Lundstedtkevin@gmail.com" as email
+                        And I enter "abc123" as password
+                        And I click the Login button
+                        Then I should be logged in successfully
+                        And I should see admin dashboard in the nav-bar
+                        And I should see my name "KevinSuper" in the header
+                    
+                      Scenario: Failed login with non-existent user
+                        Given I am on the application homepage
+                        When I click on the login button
+                        And I enter "nonexistent@example.com" as email
+                        And I enter "wrongpassword" as password
+                        And I click the Login button
+                        Then I should see an error message
+                        And I should remain on the login modal
+                    
+                      Scenario: Failed login with incorrect password
+                        Given I am on the application homepage
+                        When I click on the login button
+                        And I enter "staff@mail.com" as email
+                        And I enter "wrongpassword" as password
+                        And I click the Login button
+                        Then I should see an error message
+                        And I should remain on the login modal
+                        
+                        
+                        
+                        
+                        using Microsoft.Playwright;
+                        using TechTalk.SpecFlow;
+                        using Xunit;
+                        
+                        namespace E2ETesting.Steps
+                        {
+                            [Binding]
+                            public class LoginSteps
+                            {
+                                // SETUP:
+                                private IPlaywright _playwright;
+                                private IBrowser _browser;
+                                private IBrowserContext _context;
+                                private IPage _page;
+                                private string _baseUrl = "http://localhost:3001";
+                        
+                                [BeforeScenario]
+                                public async Task Setup()
+                                {
+                                    _playwright = await Playwright.CreateAsync();
+                                    _browser = await _playwright.Chromium.LaunchAsync(new() { Headless = true, SlowMo = 0 });
+                                    _context = await _browser.NewContextAsync();
+                                    _page = await _context.NewPageAsync();
+                                }
+                        
+                                [AfterScenario]
+                                public async Task TearDown()
+                                {
+                                    await _context.CloseAsync();
+                                    await _browser.CloseAsync();
+                                    _playwright.Dispose();
+                                }
+                        
+                                // STEPS:
+                        
+                                [Given(@"I am on the application homepage")]
+                                public async Task GivenIAmOnTheApplicationHomepage()
+                                {
+                                    await _page.GotoAsync("http://localhost:3001/staff/login");
+                                }
+                        
+                                [When(@"I click on the login button")]
+                                public async Task WhenIClickOnTheLoginButton()
+                                {
+                                    await _page.ClickAsync(".staff-login-button");
+                                }
+                        
+                                [When(@"I enter ""(.*)"" as email")]
+                                public async Task WhenIEnterAsEmail(string email)
+                                {
+                                    await _page.FillAsync("input[type='text']", email);
+                                }
+                        
+                                [When(@"I enter ""(.*)"" as password")]
+                                public async Task WhenIEnterAsPassword(string password)
+                                {
+                                    await _page.FillAsync("input[type='password']", password);
+                                }
+                        
+                                [When(@"I click the Login button")]
+                                public async Task WhenIClickTheLoginButton()
+                                {
+                                    await _page.ClickAsync("button[type='submit']");
+                                }
+                        
+                                [Then(@"I should be logged in successfully")]
+                                public async Task ThenIShouldBeLoggedInSuccessfully()
+                                {
+                                    await _page.WaitForURLAsync("**/dashboard");
+                                    Assert.Contains("dashboard", _page.Url);
+                                }
+                        
+                                [Then(@"I should see staff features for ""(.*)"" department")]
+                                public async Task ThenIShouldSeeStaffFeaturesForDepartment(string department)
+                                {
+                                    var element = await _page.WaitForSelectorAsync($"span.company-name:text('{department}')");
+                                    Assert.NotNull(element);
+                                }
+                        
+                        
+                        
+                                [Then(@"I should see my name ""(.*)"" in the header")]
+                                public async Task ThenIShouldSeeMyNameInTheHeader(string name)
+                                {
+                                    var nameElement = await _page.WaitForSelectorAsync(".user-name");
+                                    var text = await nameElement.TextContentAsync();
+                                    Assert.Equal(name, text);
+                                }
+                        
+                                [Then(@"I should see admin dashboard in the nav-bar")]
+                                public async Task ThenIShouldSeeAdminDashboardInTheNavBar()
+                                {
+                                    var element = await _page.WaitForSelectorAsync("h2:text('Admin')");
+                                    Assert.NotNull(element);
+                                }
+                        
+                        
+                                [Then(@"I should see an error message")]
+                                public async Task ThenIShouldSeeAnErrorMessage()
+                                {
+                                    var errorElement = await _page.WaitForSelectorAsync(".error-message");
+                                    Assert.NotNull(errorElement);
+                                }
+                        
+                                [Then(@"I should remain on the login modal")]
+                                public async Task ThenIShouldRemainOnTheLoginModal()
+                                {
+                                    Assert.Contains("login", _page.Url);
+                                }
+                        
+                                [AfterScenario]
+                                public async Task AfterScenario()
+                                {
+                                    await _browser?.CloseAsync();
+                                    _playwright?.Dispose();
+                                }
+                            }
+                        }
+
+                    
+
 
 
 

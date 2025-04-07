@@ -451,3 +451,4 @@ C:\Users\sigge bratt\Desktop\testing\N2NTest\obj\Debug\net8.0\refint\N2NTest.dll
 C:\Users\sigge bratt\Desktop\testing\N2NTest\obj\Debug\net8.0\N2NTest.pdb
 C:\Users\sigge bratt\Desktop\testing\N2NTest\obj\Debug\net8.0\N2NTest.genruntimeconfig.cache
 C:\Users\sigge bratt\Desktop\testing\N2NTest\obj\Debug\net8.0\ref\N2NTest.dll
+C:\Users\sigge bratt\Desktop\testing\N2NTest\obj\Debug\net8.0\N2NTest.sourcelink.json
