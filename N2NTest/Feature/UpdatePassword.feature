@@ -15,8 +15,8 @@ So that I can maintain my account security
     Scenario: Successfully update user password
         Given I am logged in to the application
         When I navigate to the update password page
-        And I enter "NewUsername" as the new username
-        And I enter "NewPassword123" as the new password
-        And I enter "NewPassword123" as the confirm password
+        And I enter "Admino" as the new username
+        And I enter "02589" as the new password
+        And I enter "02589" as the confirm password
         And I click the Update button
         Then I should see a password update success message

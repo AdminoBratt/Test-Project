@@ -149,13 +149,13 @@ namespace N2NTest.Feature
         testRunner.When("I navigate to the update password page", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
 #line 18
-        testRunner.And("I enter \"NewUsername\" as the new username", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+        testRunner.And("I enter \"Admino\" as the new username", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 19
-        testRunner.And("I enter \"NewPassword123\" as the new password", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+        testRunner.And("I enter \"02589\" as the new password", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 20
-        testRunner.And("I enter \"NewPassword123\" as the confirm password", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+        testRunner.And("I enter \"02589\" as the confirm password", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 21
         testRunner.And("I click the Update button", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
