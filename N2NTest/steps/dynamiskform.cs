@@ -1,6 +1,5 @@
 ﻿using Microsoft.Playwright;
 using TechTalk.SpecFlow;
-using Xunit;
 
 namespace E2ETesting.Steps;
 
