@@ -26,9 +26,6 @@ namespace N2NTest.Helper
                 // Fill in the password field
                 await page.FillAsync(".staff-field-input[type='password']", "02589");
                 
-                // Take a screenshot before clicking login
-                await page.ScreenshotAsync(new() { Path = "before-login-click.png" });
-                
                 // Set up a task to wait for navigation
                 var navigationPromise = page.WaitForNavigationAsync(new() { 
                     Timeout = 30000,  // 30 seconds timeout
@@ -41,14 +38,9 @@ namespace N2NTest.Helper
                 // Wait for navigation to complete
                 try {
                     await navigationPromise;
-                    Console.WriteLine("Navigation completed successfully");
                 } catch (TimeoutException) {
-                    Console.WriteLine("Navigation timeout occurred - proceeding anyway");
                     // Continue even on timeout
                 }
-                
-                // Take a screenshot after login attempt
-                await page.ScreenshotAsync(new() { Path = "after-login-click.png" });
                 
                 // Check for error messages
                 var errorElement = await page.QuerySelectorAsync(".error-message");
@@ -60,35 +52,26 @@ namespace N2NTest.Helper
                 
                 // Check if we're on the dashboard
                 var currentUrl = page.Url;
-                Console.WriteLine($"Current URL after login attempt: {currentUrl}");
                 
                 if (!currentUrl.Contains("admin/dashboard"))
                 {
-                    Console.WriteLine("Not on dashboard, attempting direct navigation...");
-                    
                     // If not on dashboard, try navigating directly
                     await page.GotoAsync("http://localhost:3001/admin/dashboard");
                     await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
                     
                     // Check URL again after direct navigation
                     currentUrl = page.Url;
-                    Console.WriteLine($"URL after direct navigation: {currentUrl}");
                     
                     // If we're redirected back to login, login likely failed
                     if (currentUrl.Contains("staff/login"))
                     {
                         Console.WriteLine("Redirected back to login page - login appears to have failed");
-                        await page.ScreenshotAsync(new() { Path = "login-failure.png" });
                     }
                 }
-                
-                // Final screenshot to show current state
-                await page.ScreenshotAsync(new() { Path = "final-state.png" });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Exception during login: {ex.Message}");
-                await page.ScreenshotAsync(new() { Path = "login-exception.png" });
                 throw;
             }
         }
