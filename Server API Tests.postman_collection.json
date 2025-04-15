@@ -1,0 +1,760 @@
+{
+	"info": {
+		"_postman_id": "d97584f9-0487-4b9c-9883-1491ab0e899f",
+		"name": "Server API Tests",
+		"description": "Tests for the server APIs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40901052"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success flag\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.eql(true);",
+									"});",
+									"",
+									"pm.test(\"Response contains user data\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.user).to.be.an('object');",
+									"    pm.expect(responseJson.user.id).to.be.a('number');",
+									"    pm.expect(responseJson.user.username).to.be.a('string');",
+									"    pm.expect(responseJson.user.company).to.be.a('string');",
+									"    pm.expect(responseJson.user.role).to.be.a('string');",
+									"    pm.expect(responseJson.user.email).to.be.a('string');",
+									"    ",
+									"    // Store user ID for later tests",
+									"    pm.collectionVariables.set('userId', responseJson.user.id);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"siggebratt1@gmail.com\",\n    \"password\": \"02589\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						},
+						"description": "Login with username/email and password"
+					},
+					"response": []
+				},
+				{
+					"name": "Check Auth Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains authentication status\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.isLoggedIn).to.be.a('boolean');",
+									"    pm.expect(responseJson.firstName).to.be.a('string');",
+									"    pm.expect(responseJson.role).to.be.a('string');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/chat/auth-status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"chat",
+								"auth-status"
+							]
+						},
+						"description": "Check if user is logged in"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has success message\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.eql(true);",
+									"    pm.expect(responseJson.message).to.eql(\"Utloggad\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"logout"
+							]
+						},
+						"description": "Logout user and clear session"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for login/logout and session management"
+		},
+		{
+			"name": "User Management",
+			"item": [
+				{
+					"name": "Get All Users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is an array of users\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.be.an('array');",
+									"    ",
+									"    if (responseJson.length > 0) {",
+									"        pm.expect(responseJson[0]).to.have.property('id');",
+									"        pm.expect(responseJson[0]).to.have.property('firstName');",
+									"        pm.expect(responseJson[0]).to.have.property('company');",
+									"        pm.expect(responseJson[0]).to.have.property('role');",
+									"        pm.expect(responseJson[0]).to.have.property('email');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						},
+						"description": "Get all users"
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains user creation message\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.message).to.eql(\"Användare skapad\");",
+									"    pm.expect(responseJson.user).to.be.an('object');",
+									"    pm.expect(responseJson.user.Id).to.be.a('number');",
+									"    ",
+									"    // Save the user ID for later tests",
+									"    if (responseJson.user && responseJson.user.Id) {",
+									"        pm.collectionVariables.set('userId', responseJson.user.Id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Test User\",\n    \"password\": \"password123\",\n    \"company\": \"fordon\",\n    \"role\": \"staff\",\n    \"email\": \"testuser@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						},
+						"description": "Create a new user"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains success message\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.message).to.eql(\"Uppgifterna uppdaterades framgångsrikt\");",
+									"    pm.expect(responseJson.user).to.be.an('object');",
+									"    pm.expect(responseJson.user.Id).to.be.a('number');",
+									"    pm.expect(responseJson.user.FirstName).to.eql(\"Updated Name\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Updated Name\",\n    \"password\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{userId}}"
+							]
+						},
+						"description": "Update a user's information"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains success message\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.message).to.eql(\"Användare borttagen\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{userId}}"
+							]
+						},
+						"description": "Delete a user by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "User management endpoints for creating, reading, updating, and deleting users"
+		},
+		{
+			"name": "Chat Messages",
+			"item": [
+				{
+					"name": "Send Chat Message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains the created message\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.id).to.be.a('number');",
+									"    pm.expect(responseJson.sender).to.be.a('string');",
+									"    pm.expect(responseJson.message).to.be.a('string');",
+									"    pm.expect(responseJson.timestamp).to.be.a('string');",
+									"    pm.expect(responseJson.chatToken).to.be.a('string');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sender\": \"Test User\",\n    \"message\": \"This is a test message\",\n    \"chatToken\": \"{{chatToken}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/chat/message",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"chat",
+								"message"
+							]
+						},
+						"description": "Send a new chat message"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Chat Messages",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains messages and chat owner\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.messages).to.be.an('array');",
+									"    pm.expect(responseJson.chatOwner).to.be.a('string').or.to.be.null;",
+									"    ",
+									"    if (responseJson.messages.length > 0) {",
+									"        const firstMessage = responseJson.messages[0];",
+									"        pm.expect(firstMessage.id).to.be.a('number');",
+									"        pm.expect(firstMessage.sender).to.be.a('string');",
+									"        pm.expect(firstMessage.message).to.be.a('string');",
+									"        pm.expect(firstMessage.timestamp).to.be.a('string');",
+									"        pm.expect(firstMessage.chatToken).to.be.a('string');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/chat/messages/{{chatToken}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"chat",
+								"messages",
+								"{{chatToken}}"
+							]
+						},
+						"description": "Get all messages for a specific chat token"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for sending and retrieving chat messages"
+		},
+		{
+			"name": "Form Submissions",
+			"item": [
+				{
+					"name": "Submit Fordon Form",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response indicates successful submission\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.true;",
+									"    pm.expect(responseJson.message).to.be.a('string');",
+									"    pm.expect(responseJson.submission).to.be.an('object');",
+									"    pm.expect(responseJson.chatLink).to.be.a('string');",
+									"    ",
+									"    // Store chat token for later tests",
+									"    if (responseJson.submission && responseJson.submission.chatToken) {",
+									"        pm.collectionVariables.set('chatToken', responseJson.submission.chatToken);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Test Customer\",\n    \"email\": \"customer@example.com\",\n    \"regNummer\": \"ABC123\",\n    \"issueType\": \"Service\",\n    \"message\": \"I have a problem with my car\",\n    \"companyType\": \"Fordonsservice\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/fordon",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"fordon"
+							]
+						},
+						"description": "Submit a new vehicle service request form"
+					},
+					"response": []
+				},
+				{
+					"name": "Submit Tele Form",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response indicates successful submission\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.true;",
+									"    pm.expect(responseJson.message).to.be.a('string');",
+									"    pm.expect(responseJson.submission).to.be.an('object');",
+									"    pm.expect(responseJson.chatLink).to.be.a('string');",
+									"    ",
+									"    // Store chat token for later tests",
+									"    if (responseJson.submission && responseJson.submission.chatToken) {",
+									"        pm.collectionVariables.set('chatToken', responseJson.submission.chatToken);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Test Customer\",\n    \"email\": \"customer@example.com\",\n    \"serviceType\": \"Broadband\",\n    \"issueType\": \"Connection Issue\",\n    \"message\": \"My internet connection is unstable\",\n    \"companyType\": \"Tele/Bredband\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tele",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tele"
+							]
+						},
+						"description": "Submit a new telecom service request form"
+					},
+					"response": []
+				},
+				{
+					"name": "Submit Forsakring Form",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response indicates successful submission\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.true;",
+									"    pm.expect(responseJson.message).to.be.a('string');",
+									"    pm.expect(responseJson.submission).to.be.an('object');",
+									"    pm.expect(responseJson.chatLink).to.be.a('string');",
+									"    ",
+									"    // Store chat token for later tests",
+									"    if (responseJson.submission && responseJson.submission.chatToken) {",
+									"        pm.collectionVariables.set('chatToken', responseJson.submission.chatToken);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Test Customer\",\n    \"email\": \"customer@example.com\",\n    \"insuranceType\": \"Home Insurance\",\n    \"issueType\": \"Claim Filing\",\n    \"message\": \"I need to file a claim for water damage\",\n    \"companyType\": \"Försäkringsärenden\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/forsakring",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"forsakring"
+							]
+						},
+						"description": "Submit a new insurance service request form"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for submitting different types of service request forms"
+		},
+		{
+			"name": "Tickets",
+			"item": [
+				{
+					"name": "Get Tickets",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains tickets array\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.be.an('array');",
+									"    ",
+									"    if (responseJson.length > 0) {",
+									"        const firstTicket = responseJson[0];",
+									"        pm.expect(firstTicket).to.have.property('chatToken');",
+									"        pm.expect(firstTicket).to.have.property('id');",
+									"        pm.expect(firstTicket).to.have.property('message');",
+									"        pm.expect(firstTicket).to.have.property('sender');",
+									"        pm.expect(firstTicket).to.have.property('timestamp');",
+									"        pm.expect(firstTicket).to.have.property('issueType');",
+									"        pm.expect(firstTicket).to.have.property('email');",
+									"        pm.expect(firstTicket).to.have.property('formType');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets"
+							]
+						},
+						"description": "Get tickets based on user's company"
+					},
+					"response": []
+				},
+				{
+					"name": "Archive Ticket",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains success message\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.message).to.eql(\"Ticket archived successfully\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"chatToken\": \"{{chatToken}}\",\n    \"formType\": \"Fordonsservice\",\n    \"firstName\": \"Test Customer\",\n    \"email\": \"customer@example.com\",\n    \"issueType\": \"Service\",\n    \"message\": \"I have a problem with my car\",\n    \"companyType\": \"Fordonsservice\",\n    \"resolutionNotes\": \"Issue resolved by phone\",\n    \"determineTable\": \"fordon_forms\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tickets/archive",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"archive"
+							]
+						},
+						"description": "Archive a ticket and mark chat as inactive"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing support tickets"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
+		},
+		{
+			"key": "chatToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
