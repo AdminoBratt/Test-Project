@@ -7219,6 +7219,7 @@
       "packagesPath": "C:\\Users\\sigge bratt\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\sigge bratt\\Desktop\\testing\\N2NTest\\obj\\",
       "projectStyle": "PackageReference",
+      "UsingMicrosoftNETSdk": false,
       "configFilePaths": [
         "C:\\Users\\sigge bratt\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
@@ -7242,7 +7243,7 @@
       "restoreAuditProperties": {
         "enableAudit": "true",
         "auditLevel": "low",
-        "auditMode": "direct"
+        "auditMode": "all"
       }
     },
     "frameworks": {
@@ -7301,12 +7302,26 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[8.0.11, 8.0.11]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[8.0.11, 8.0.11]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[8.0.11, 8.0.11]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.403/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Users\\sigge bratt\\.dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
       }
     }
   },
@@ -7327,6 +7342,16 @@
       "warningLevel": 1,
       "message": "Detected package version outside of dependency constraint: xunit.extensibility.execution 2.5.3 requires xunit.extensibility.core (= 2.5.3) but version xunit.extensibility.core 2.9.3 was resolved.",
       "libraryId": "xunit.extensibility.core",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'System.Text.RegularExpressions' 4.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-cmhx-cq75-c4mj",
+      "libraryId": "System.Text.RegularExpressions",
       "targetGraphs": [
         "net8.0"
       ]

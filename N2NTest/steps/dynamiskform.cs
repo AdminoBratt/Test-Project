@@ -42,7 +42,6 @@ public class ContactFormSteps
     public async Task WhenISelectAsTheCompanyType(string companyType)
     {
         await _page.SelectOptionAsync("select[name='companyType']", companyType);
-        // Allow time for dynamic fields to load
         await _page.WaitForTimeoutAsync(200);
     }
 
@@ -88,14 +87,12 @@ public class ContactFormSteps
     {
         await _page.ClickAsync("button.dynamisk-form-button");
         
-        // Wait for form submission to complete
         await _page.WaitForSelectorAsync(".dynamisk-message", new() { State = WaitForSelectorState.Visible });
     }
 
     [When(@"I submit the form without filling required fields")]
     public async Task WhenISubmitTheFormWithoutFillingRequiredFields()
     {
-        // Clear any filled fields first
         await _page.EvaluateAsync("document.querySelector('input[name=\"firstName\"]').value = ''");
         await _page.EvaluateAsync("document.querySelector('input[name=\"email\"]').value = ''");
         
@@ -108,11 +105,9 @@ public class ContactFormSteps
         var messageElement = await _page.WaitForSelectorAsync(".dynamisk-message:not(.error)");
         Assert.NotNull(messageElement);
         
-        // Verify the message is not an error
         var classAttribute = await messageElement.GetAttributeAsync("class");
         Assert.DoesNotContain("error", classAttribute);
         
-        // Optional: Verify specific success message text
         var messageText = await messageElement.TextContentAsync();
         Assert.NotEmpty(messageText);
     }
@@ -120,11 +115,9 @@ public class ContactFormSteps
     [Then(@"I should see validation errors")]
     public async Task ThenIShouldSeeValidationErrors()
     {
-        // Check for HTML5 validation errors
         var isValid = await _page.EvaluateAsync<bool>("() => document.querySelector('form').checkValidity()");
         Assert.False(isValid);
         
-        // Alternative: Check for visible error message if your form shows custom errors
         var errorElement = await _page.QuerySelectorAsync(".dynamisk-message.error");
         if (errorElement != null)
         {
@@ -133,7 +126,6 @@ public class ContactFormSteps
         }
     }
 
-    // Helper method to wait for element to disappear (replaces wait timeout)
     private async Task WaitForElementToDisappear(string selector, int timeoutMs = 5000)
     {
         var startTime = DateTime.Now;

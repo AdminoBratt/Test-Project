@@ -42,11 +42,9 @@ namespace N2NTest.StepDefinitions
         [When(@"I enter valid staff credentials")]
         public async Task WhenIEnterValidStaffCredentials()
         {
-            // Clear fields first to ensure clean input
             await _page.FillAsync(".staff-field-input[type='text']", "");
             await _page.FillAsync(".staff-field-input[type='password']", "");
             
-            // Then fill with credentials
             await _page.FillAsync(".staff-field-input[type='text']", "siggebratt1@gmail.com");
             await _page.FillAsync(".staff-field-input[type='password']", "02589");
         }
@@ -54,7 +52,6 @@ namespace N2NTest.StepDefinitions
         [When(@"I click the login button")]
         public async Task WhenIClickTheLoginButton()
         {
-            // Use reliable Promise.all pattern to handle navigation
             var navigationTask = _page.WaitForNavigationAsync(new() { 
                 Timeout = 30000,
                 WaitUntil = WaitUntilState.NetworkIdle
@@ -72,26 +69,20 @@ namespace N2NTest.StepDefinitions
         [Then(@"I should be redirected to the admin dashboard")]
         public async Task ThenIShouldBeRedirectedToTheAdminDashboard()
         {
-            // Wait a bit longer in case of delayed redirection
             await Task.Delay(2000);
             
             var currentUrl = _page.Url;
             
-            // If not automatically redirected, navigate directly
             if (!currentUrl.Contains("admin/dashboard"))
             {
                 await _page.GotoAsync("http://localhost:3001/admin/dashboard");
                 
-                // Wait for network to become idle after manual navigation
                 await _page.WaitForLoadStateAsync(LoadState.NetworkIdle);
                 
-                // Check if we're able to access the dashboard
                 currentUrl = _page.Url;
                 
-                // If we're still not on the dashboard after direct navigation, login might have failed
                 if (!currentUrl.Contains("admin/dashboard"))
                 {
-                    // Check if we were redirected back to login page with error
                     var errorElement = await _page.QuerySelectorAsync(".error-message");
                     if (errorElement != null)
                     {

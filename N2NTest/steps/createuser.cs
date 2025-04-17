@@ -5,7 +5,7 @@ using N2NTest.Helper;
 namespace E2ETesting.Steps
 {
     [Binding]
-    [Scope(Feature = "Admin Create User")] // Add this scope attribute
+    [Scope(Feature = "Admin Create User")] 
     public class AdminCreateUserSteps
     {
         // SETUP:
@@ -38,7 +38,6 @@ namespace E2ETesting.Steps
         {
             await LogIn.LoginAsync(_page);
             
-            // Verify we're on the admin dashboard
             await _page.WaitForURLAsync("**/admin/dashboard", new() { Timeout = 30000 });
         }
 
@@ -47,13 +46,10 @@ namespace E2ETesting.Steps
         {
             try
             {
-                // Try direct navigation first
                 await _page.GotoAsync($"{_baseUrl}/admin/create-user");
                 
-                // Check if we landed on the create user page
                 var createUserForm = await _page.QuerySelectorAsync("form .admin-login:text('Skapa användare')");
                 
-                // If not found, try clicking the link in the navigation
                 if (createUserForm == null)
                 {
                     var createUserLink = await _page.QuerySelectorAsync("a[href='/admin/create-user']");
@@ -110,7 +106,6 @@ namespace E2ETesting.Steps
         {
             await _page.ClickAsync("button.bla");
     
-            // Increase timeout to 30 seconds for waiting for any message to appear
             await _page.WaitForSelectorAsync("div[class*='message']", 
                 new() { State = WaitForSelectorState.Visible, Timeout = 30000 });
         }
@@ -131,7 +126,6 @@ namespace E2ETesting.Steps
         [Then(@"I should see a success message")]
         public async Task ThenIShouldSeeASuccessMessage()
         {
-            // Increase the timeout from the default to 30 seconds
             var successMessage = await _page.WaitForSelectorAsync("div.success-message", 
                 new() { State = WaitForSelectorState.Visible, Timeout = 30000 });
     
